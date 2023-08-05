@@ -1,0 +1,69 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/51eb0ae5-cc05-49e2-b694-c6711bb12fd9')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/51eb0ae5-cc05-49e2-b694-c6711bb12fd9')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2022-11-01-preview",
+            "properties": {
+                "displayName": "Authentication Attempt from New Country",
+                "description": "Authentication Attempt from New CountryTest",
+                "severity": "Medium",
+                "enabled": false,
+                "query": "workspace(\"51978007-3f40-446f-a92c-a97540c6b251\").IdentityInfo\n| where TimeGenerated >= ago(6d)\n| where AccountUPN has \"grace\" or AccountUPN has \"wayne\" \n| where Department has \"ICE223\" or Department has \"ICE222\" or Department has \"ICE220\"\n| extend\n    IPAddress =\"211.79.204.250\",\n    CreatedTime=\"2023-07-18 14:24\"\n    ,\n    TimeGeneratede =format_datetime(datetime_utc_to_local(TimeGenerated, 'Asia/Taipei'), 'yyyy-MM-dd HH:mm')\n| summarize count() by AccountUPN, IPAddress, TimeGenerated\n| extend SOAR = bag_pack(\"Account\", AccountUPN, \"IP\", IPAddress, \"CreatedTime\", TimeGenerated)\n| sort by AccountUPN desc \n",
+                "queryFrequency": "P1D",
+                "queryPeriod": "P14D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [],
+                "techniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": {
+                    "alertDynamicProperties": []
+                },
+                "customDetails": {
+                    "SOAR": "SOAR"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "SOAR"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
